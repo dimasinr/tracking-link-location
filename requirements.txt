@@ -1,0 +1,10 @@
+# GPS Tracking Link Platform - Dependencies
+
+# Core Framework
+Django==6.0.5
+
+# HTTP Requests (for IP geolocation & Nominatim reverse geocoding)
+requests==2.34.2
+
+# Excel Export
+openpyxl==3.1.5
