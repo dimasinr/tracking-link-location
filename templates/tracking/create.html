@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Create Link - LocTrack{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <h1>Create Tracking Link</h1>
+        <div class="subtitle">Set parameters to create a new unique location monitoring URL</div>
+    </div>
+    <div>
+        <a href="{% url 'link_list' %}" class="btn btn-secondary">
+            <i data-lucide="arrow-left"></i>
+            Back to List
+        </a>
+    </div>
+</header>
+
+<div style="display: flex; justify-content: center; width: 100%;">
+    <div class="glass-card" style="width: 100%; max-width: 600px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Link Settings</h3>
+        
+        <form method="post" action="{% url 'link_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="name">Link Name *</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="e.g. Interview Candidate Attendance" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea name="description" id="description" rows="3" class="form-control" placeholder="Enter context or note for this tracking link..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="redirect_url">Success Redirect URL (Optional)</label>
+                <input type="url" name="redirect_url" id="redirect_url" class="form-control" placeholder="e.g. https://google.com">
+                <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block;">
+                    User will be redirected to this URL after successful geolocation capture. Defaults to Google.
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label for="expired_at">Expiry Date & Time (Optional)</label>
+                <input type="datetime-local" name="expired_at" id="expired_at" class="form-control">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label for="require_gps">GPS Enforcement Mode</label>
+                <select name="require_gps" id="require_gps" class="form-control">
+                    <option value="true" selected>Force GPS Permission (User cannot proceed without sharing location)</option>
+                    <option value="false">Optional/Silent IP Tracking Only (No location popup prompts)</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; justify-content: flex-end;">
+                <a href="{% url 'link_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="plus"></i>
+                    Generate Link
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

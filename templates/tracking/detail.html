@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Inspect Hit - LocTrack{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <h1>Inspect Hit Details</h1>
+        <div class="subtitle">Complete telemetry and geodata captured from visitor session</div>
+    </div>
+    <div>
+        <a href="{% url 'result_list' %}" class="btn btn-secondary">
+            <i data-lucide="arrow-left"></i>
+            Back to Results
+        </a>
+    </div>
+</header>
+
+<div class="dashboard-layout" style="grid-template-columns: 1fr 1fr;">
+    <!-- Telemetry Cards -->
+    <div class="column">
+        <!-- General & Network -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="globe" style="width: 18px; height: 18px; color: var(--accent);"></i>
+                Network & Session Info
+            </h3>
+            
+            <table style="width: 100%;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); width: 35%; padding: 12px 0;">Visit Time</td>
+                    <td style="padding: 12px 0;">{{ hit.visited_at|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Tracking Link</td>
+                    <td style="padding: 12px 0;"><span style="color: var(--accent); font-weight: 600;">{{ hit.tracking_link.name }}</span> ({{ hit.tracking_link.code }})</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">IP Address</td>
+                    <td style="padding: 12px 0; font-family: monospace; font-weight: 600;">{{ hit.ip_address }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">ISP</td>
+                    <td style="padding: 12px 0;">{{ hit.isp|default:"N/A" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">ASN</td>
+                    <td style="padding: 12px 0; font-size: 13px;">{{ hit.asn|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Referrer</td>
+                    <td style="padding: 12px 0; font-size: 13px; max-width: 250px; overflow-wrap: break-word;">{{ hit.referrer|default:"Direct / None" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Device Info -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="monitor" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                Device & Browser Telemetry
+            </h3>
+            
+            <table style="width: 100%;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); width: 35%; padding: 12px 0;">Device Type</td>
+                    <td style="padding: 12px 0;">
+                        <span class="badge badge-success" style="background-color: var(--primary-glow); color: var(--primary);">
+                            {{ hit.device_type }}
+                        </span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Operating System</td>
+                    <td style="padding: 12px 0;">{{ hit.os }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Browser</td>
+                    <td style="padding: 12px 0;">{{ hit.browser }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Browser Version</td>
+                    <td style="padding: 12px 0; font-size: 13px;">{{ hit.browser_version|default:"N/A" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Screen Resolution</td>
+                    <td style="padding: 12px 0;">
+                        {% if hit.screen_width and hit.screen_height %}
+                            {{ hit.screen_width }} x {{ hit.screen_height }}
+                        {% else %}
+                            <span style="color: var(--text-muted);">Unknown</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Language</td>
+                    <td style="padding: 12px 0; font-size: 13px;">{{ hit.language|default:"N/A" }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Map & Geodata -->
+    <div class="column">
+        <!-- GPS & Location Details -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="map-pin" style="width: 18px; height: 18px; color: var(--success);"></i >
+                GPS & Geocoded Address
+            </h3>
+            
+            <table style="width: 100%;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); width: 35%; padding: 12px 0;">Coordinates</td>
+                    <td style="padding: 12px 0;">
+                        {% if hit.latitude and hit.longitude %}
+                            <span style="font-family: monospace; font-weight: 600; color: var(--success);">
+                                {{ hit.latitude }}, {{ hit.longitude }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">Not Captured</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Accuracy</td>
+                    <td style="padding: 12px 0;">
+                        {% if hit.accuracy %}
+                            ± {{ hit.accuracy|floatformat:1 }} meters
+                        {% else %}
+                            <span style="color: var(--text-muted);">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Country</td>
+                    <td style="padding: 12px 0;">{{ hit.country|default:"Unknown" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Province / State</td>
+                    <td style="padding: 12px 0;">{{ hit.province|default:"Unknown" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">City / Regency</td>
+                    <td style="padding: 12px 0;">{{ hit.city|default:"Unknown" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">District</td>
+                    <td style="padding: 12px 0;">{{ hit.district|default:"Unknown" }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-muted); padding: 12px 0;">Full Address</td>
+                    <td style="padding: 12px 0; font-size: 13px; line-height: 1.4;">{{ hit.full_address|default:"No geocoded address available." }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Leaflet Map widget -->
+        {% if hit.latitude and hit.longitude %}
+        <div class="glass-card" style="padding: 20px;">
+            <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Map Visualization</h3>
+            <div id="inspector-map" style="height: 300px; border-radius: 10px; z-index: 1;"></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if hit.latitude and hit.longitude %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const lat = parseFloat("{{ hit.latitude }}");
+        const lon = parseFloat("{{ hit.longitude }}");
+        
+        const map = L.map('inspector-map').setView([lat, lon], 15);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            maxZoom: 20
+        }).addTo(map);
+        
+        const marker = L.marker([lat, lon]).addTo(map);
+        
+        // accuracy circle
+        {% if hit.accuracy %}
+        L.circle([lat, lon], {
+            color: 'var(--success)',
+            fillColor: 'var(--success)',
+            fillOpacity: 0.15,
+            radius: {{ hit.accuracy }}
+        }).addTo(map);
+        {% endif %}
+        
+        marker.bindPopup(`
+            <div style="color: #1e293b; font-family: sans-serif; font-size: 11px;">
+                <strong>Capturing Spot</strong><br>
+                Accuracy: {{ hit.accuracy|floatformat:1 }}m
+            </div>
+        `).openPopup();
+    });
+</script>
+{% endif %}
+{% endblock %}

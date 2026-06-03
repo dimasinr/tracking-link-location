@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LocTrack{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <h1>Dashboard</h1>
+        <div class="subtitle">Real-time statistics & tracking analytics overview</div>
+    </div>
+    <div>
+        <a href="{% url 'link_create' %}" class="btn btn-primary">
+            <i data-lucide="plus"></i>
+            Create Link
+        </a>
+    </div>
+</header>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background-color: var(--primary-glow); color: var(--primary);">
+            <i data-lucide="link"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ total_links }}</div>
+            <div class="stat-label">Total Links</div>
+        </div>
+    </div>
+    
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background-color: var(--accent-glow); color: var(--accent);">
+            <i data-lucide="eye"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ total_hits }}</div>
+            <div class="stat-label">Total Hits</div>
+        </div>
+    </div>
+
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background-color: var(--success-glow); color: var(--success);">
+            <i data-lucide="users"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ unique_visitors }}</div>
+            <div class="stat-label">Unique Visitors</div>
+        </div>
+    </div>
+
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background-color: rgba(245, 158, 11, 0.15); color: var(--warning);">
+            <i data-lucide="zap"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ today_hits }}</div>
+            <div class="stat-label">Today's Hits</div>
+        </div>
+    </div>
+
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background-color: var(--success-glow); color: var(--success);">
+            <i data-lucide="power"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ active_links }}</div>
+            <div class="stat-label">Active Links</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout">
+    <!-- Left Column (Map & Recent hits) -->
+    <div class="column">
+        <div class="glass-card" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 18px; font-weight: 600;">Visitor Live Map</h3>
+                <span class="badge badge-success" style="font-size: 10px; display: flex; align-items: center; gap: 4px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background-color: var(--success); display: inline-block;"></span>
+                    Live Coordinates
+                </span>
+            </div>
+            <div id="dashboard-map" style="height: 420px; border-radius: 12px; z-index: 1;"></div>
+        </div>
+        
+        <div class="glass-card">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Live Activity (Recent Hits)</h3>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Link</th>
+                            <th>IP Address</th>
+                            <th>Country / City</th>
+                            <th>Device</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hit in latest_hits %}
+                        <tr style="cursor: pointer;" onclick="window.location='{% url 'result_detail' hit.pk %}'">
+                            <td>{{ hit.visited_at|date:"Y-m-d H:i:s" }}</td>
+                            <td><span style="font-family: monospace; font-weight: 600; color: var(--accent);">{{ hit.tracking_link.code }}</span></td>
+                            <td>{{ hit.ip_address }}</td>
+                            <td>
+                                {% if hit.country %}
+                                    {{ hit.city }}, {{ hit.country }}
+                                {% else %}
+                                    <span style="color: var(--text-muted);">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    {% if hit.device_type == 'Mobile' %}
+                                        <i data-lucide="smartphone" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                                    {% elif hit.device_type == 'Tablet' %}
+                                        <i data-lucide="tablet" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                                    {% else %}
+                                        <i data-lucide="monitor" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                                    {% endif %}
+                                    <span>{{ hit.browser }} ({{ hit.os }})</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">No activities recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column (Leaderboards) -->
+    <div class="column">
+        <!-- Most Accessed -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Top Links</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for link in most_accessed %}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 600; font-size: 14px;">{{ link.name }}</span>
+                        <span style="font-family: monospace; font-size: 12px; color: var(--text-muted);">/t/{{ link.code }}</span>
+                    </div>
+                    <span class="badge badge-success">{{ link.count }} Hits</span>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: var(--text-muted); font-size: 13px;">No links created yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Countries -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Top Countries</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for item in top_countries %}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 500; font-size: 14px;">{{ item.country|default:"Unknown" }}</span>
+                    <span class="badge badge-success" style="background-color: var(--primary-glow); color: var(--primary);">{{ item.count }} Visits</span>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: var(--text-muted); font-size: 13px;">No country data available.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Cities -->
+        <div class="glass-card">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Top Cities</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for item in top_cities %}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 500; font-size: 14px;">{{ item.city|default:"Unknown" }}</span>
+                    <span class="badge badge-success" style="background-color: var(--accent-glow); color: var(--accent);">{{ item.count }} Visits</span>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: var(--text-muted); font-size: 13px;">No city data available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize Leaflet map
+        const map = L.map('dashboard-map').setView([0, 0], 2);
+        
+        // CartoDB Dark Matter tiles (looks beautiful with dark theme)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+        
+        const markers = [];
+        
+        {% for hit in map_hits %}
+            {% if hit.latitude and hit.longitude %}
+                (function() {
+                    const lat = parseFloat("{{ hit.latitude }}");
+                    const lon = parseFloat("{{ hit.longitude }}");
+                    const marker = L.marker([lat, lon]).addTo(map);
+                    marker.bindPopup(`
+                        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; line-height: 1.4;">
+                            <strong style="font-size: 13px; color: #4f46e5;">Link: {{ hit.tracking_link.name }}</strong><br>
+                            <b>IP:</b> {{ hit.ip_address }}<br>
+                            <b>Location:</b> {{ hit.city }}, {{ hit.country }}<br>
+                            <b>Accuracy:</b> {{ hit.accuracy }} m<br>
+                            <b>Time:</b> {{ hit.visited_at|date:"Y-m-d H:i:s" }}
+                        </div>
+                    `);
+                    markers.push(marker);
+                })();
+            {% endif %}
+        {% endfor %}
+        
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.15));
+        } else {
+            // Default center
+            map.setView([-6.2088, 106.8456], 5); // Default to Jakarta
+        }
+    });
+</script>
+{% endblock %}
